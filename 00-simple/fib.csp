@@ -1,0 +1,20 @@
+channel ch: Int
+
+MAIN =
+    let
+        MAIN'(i) =
+            i < 20 & ch?j -> MAIN'(i + 1)
+    within
+        MAIN'(0)
+
+FIBS =
+    let
+        FIBS'(i, j) = ch!j -> FIBS'(j, i+j)
+    within
+        FIBS'(0, 1)
+
+PROGRAM = MAIN [| {| ch |} |] FIBS
+
+--assert PROGRAM :[deadlock free]
+
+assert STOP [T= PROGRAM

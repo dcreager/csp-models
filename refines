@@ -1,0 +1,24 @@
+#!/bin/sh
+# Runs FDR's `refines` command inside of a Docker container.
+
+# Create FDR's config directory in the host.  The first time you run this
+# command, you'll be prompted for licensing information, and you'll have to
+# obtain a license file from the FDR maintainers.  (This all happens
+# automatically based on your answers to a prompt.)  We store the license on the
+# host so that you don't have to reacquire your license every time you run this
+# command.
+mkdir -p "$HOME"/.config/fdr
+
+# Run the refines command in a container.  We share two directories inside the
+# container: the FDR config directory, and $PWD.  Both are exposed at the same
+# locations inside the container, so that whatever filenames you pass in on the
+# command line can be passed as-is to FDR.
+docker run --rm \
+    -e HOME="$HOME" \
+    -u $(id -u):$(id -g) \
+    -v "$HOME"/.config/fdr:"$HOME"/.config/fdr \
+    -v "$PWD":"$PWD" \
+    -w "$PWD" \
+    dcreager/fdr \
+    /usr/bin/refines \
+    "$@"

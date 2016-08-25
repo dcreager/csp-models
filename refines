@@ -13,7 +13,7 @@ mkdir -p "$HOME"/.config/fdr
 # container: the FDR config directory, and $PWD.  Both are exposed at the same
 # locations inside the container, so that whatever filenames you pass in on the
 # command line can be passed as-is to FDR.
-docker run --rm \
+docker run -it --rm \
     -e HOME="$HOME" \
     -u $(id -u):$(id -g) \
     -v "$HOME"/.config/fdr:"$HOME"/.config/fdr \

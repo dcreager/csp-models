@@ -1,0 +1,40 @@
+Object = {1..2}
+Value = {1..5}
+
+channel read : Object.Value
+channel write : Object.Value
+
+
+-- Internal consistency says that if you write to an object and then read from
+-- it in the same transaction, you'll see the value that you wrote.
+InternalConsistency = let
+  -- Each object starts undefined (according to this transaction).
+  Undefined(obj) =
+    -- If you try to read an undefined object, the result is undefined; you
+    -- might get any value whatsoever!
+    read!obj?value -> Undefined(obj)
+    []
+    -- If you write to an undefined object, it becomes defined.
+    write!obj?value -> Defined(obj, value)
+
+  Defined(obj, value) =
+    -- If you read from a defined object, you can only see the "current" value
+    -- of the object.
+    read!obj!value -> Defined(obj, value)
+    []
+    -- And if you write to a defined object, you overwrite the "current" value.
+    write!obj?newValue -> Defined(obj, newValue)
+
+within
+    -- We can consider each object independently, so we use this version of
+    -- alphabetized parallel to combine all of the per-object subprocesses.
+    || obj : Object @ [{|read.obj, write.obj|}] Undefined(obj)
+
+
+-- This should be an error; once you've written the value 1 to object 1, you
+-- shouldn't be able to read the value 2 from it.
+UnrepeatableRead = write!1!1 -> read!1!2 -> STOP
+
+-- This should fail and give you a counterexample telling you that
+-- InternalConsistency will prevent read!1!2 from occurring.
+assert InternalConsistency [T= UnrepeatableRead

@@ -41,3 +41,10 @@ UnrepeatableRead = write!1!1 -> read!1!2 -> STOP
 -- This should fail and give you a counterexample telling you that
 -- InternalConsistency will prevent read!1!2 from occurring.
 assert InternalConsistency [T= UnrepeatableRead
+
+-- This should be okay; once you've written the value 1 to object 1, you
+-- should get the value 1 when you read from it later.
+RepeatableRead = write!1!1 -> read!1!1 -> STOP
+
+-- This should succeed.
+assert InternalConsistency [T= RepeatableRead

@@ -26,9 +26,12 @@ InternalConsistency = let
     write!obj?newValue -> Defined(obj, newValue)
 
 within
-    -- We can consider each object independently, so we use this version of
+    -- We can consider each object independently, so normally we would use
     -- alphabetized parallel to combine all of the per-object subprocesses.
-    || obj : Object @ [{|read.obj, write.obj|}] Undefined(obj)
+    -- Because the subprocesses don't even try to communicate using overlapping
+    -- events, we can use interleave to save some typing.  (The resulting
+    -- process has exactly the same LTS.)
+    ||| obj : Object @ Undefined(obj)
 
 
 -- This should be an error; once you've written the value 1 to object 1, you

@@ -1,0 +1,17 @@
+channel coin
+channel tea
+
+-- This is just a more verbose definition of the same VendingMachine from
+-- 01-tea-machine.csp.  It's exactly the same process!
+VendingMachine = let
+    WaitingForCoin = coin -> ReadyToDispenseTea
+    ReadyToDispenseTea = tea -> WaitingForCoin
+within
+    WaitingForCoin
+
+-- In particular, it should have exactly the same traces.
+assert VendingMachine :[has trace [T]]: <coin>                  -- yes
+assert VendingMachine :[has trace [T]]: <coin, tea>             -- yes
+assert VendingMachine :[has trace [T]]: <coin, tea, coin>       -- yes
+assert VendingMachine :[has trace [T]]: <coin, tea, coin, tea>  -- yes
+assert VendingMachine :[has trace [T]]: <tea>                   -- NO!

@@ -1,0 +1,29 @@
+datatype Product = tea | coffee
+channel coin
+channel request : Product
+channel vend : Product
+
+-- This is the same process as in 03-coffee-machine.csp.
+VendingMachine = let
+    WaitingForCoin = coin -> WaitingForRequest
+    WaitingForRequest =
+        request!tea -> ReadyToDispenseTea
+            []
+        request!coffee -> ReadyToDispenseCoffee
+    ReadyToDispenseTea = vend!tea -> WaitingForCoin
+    ReadyToDispenseCoffee = vend!coffee -> WaitingForCoin
+within
+    WaitingForCoin
+
+-- But let's verify its behavior more rigorously.  This process says that the
+-- machine will always dispense the beverage that the customer asked for.
+AlwaysVendsRequestedProduct = let
+    NoProductRequested = request?product -> ProductRequested(product)
+    ProductRequested(product) = vend!product -> NoProductRequested
+within
+    NoProductRequested
+
+-- This refinement should succeed, giving us a mathematical proof that our
+-- VendingMachine will AlwaysVendRequestedProduct.
+-- Exercise: This will fail!  Why?
+assert AlwaysVendsRequestedProduct [T= VendingMachine

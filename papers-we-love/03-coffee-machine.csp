@@ -1,0 +1,22 @@
+datatype Product = tea | coffee
+channel coin
+channel request : Product
+channel vend : Product
+
+-- This vending machine holds two different kinds of drink.  After inserting a
+-- `coin`, the customer chooses a beverage (`request`), and then the machine
+-- dispenses whatever beverage the customer asked for (`vend`).
+VendingMachine = let
+    WaitingForCoin = coin -> WaitingForRequest
+    WaitingForRequest =
+        request!tea -> ReadyToDispenseTea
+            []
+        request!coffee -> ReadyToDispenseCoffee
+    ReadyToDispenseTea = vend!tea -> WaitingForCoin
+    ReadyToDispenseCoffee = vend!coffee -> WaitingForCoin
+within
+    WaitingForCoin
+
+-- Verify that the process behaves as we expect!
+assert VendingMachine :[has trace [T]]: <coin, request.tea, vend.tea>     -- yes
+assert VendingMachine :[has trace [T]]: <coin, request.tea, vend.coffee>  -- NO!

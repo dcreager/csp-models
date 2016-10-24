@@ -1,0 +1,34 @@
+-- Back to a world with no beer.
+datatype Product = tea | coffee
+channel coin
+channel request : Product
+channel vend : Product
+
+-- Still the no-beer vending machine, but changed to use "internal choice".
+-- That means that after the customer inserts a coin, the machine can decide to
+-- disable any of the buttons, and not allow the customer to choose particular
+-- drinks.  (The only constraint is that the machine can't disable EVERY
+-- button.)
+VendingMachine = let
+    WaitingForCoin = coin -> WaitingForRequest
+    WaitingForRequest =
+        request!tea -> ReadyToDispenseTea
+            |~|  -- The only change!
+        request!coffee -> ReadyToDispenseCoffee
+    ReadyToDispenseTea = vend!tea -> WaitingForCoin
+    ReadyToDispenseCoffee = vend!coffee -> WaitingForCoin
+within
+    WaitingForCoin
+
+-- Let's verify that the customer can choose whichever beverage they want.
+CustomerCanChooseAnything = request?product -> CustomerCanChooseAnything
+
+-- Our intuition is that this refinement should fail, but it doesn't!  Why?
+-- Because the traces model can only model "safety" properties — saying that a
+-- bad thing cannot happen.
+assert CustomerCanChooseAnything [T= (VendingMachine \ {| coin, vend |})
+
+-- This one does fail, because we've changed to the "failures" semantic model,
+-- which is able to reason about "liveness" properties — saying that a good
+-- thing MUST happen.
+assert CustomerCanChooseAnything [F= (VendingMachine \ {| coin, vend |})

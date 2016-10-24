@@ -1,0 +1,12 @@
+channel coin
+channel tea
+
+-- A simple vending machine!
+VendingMachine = coin -> tea -> VendingMachine
+
+-- Processes have "traces", which are sequences of events that can occur.
+assert VendingMachine :[has trace [T]]: <coin>                  -- yes
+assert VendingMachine :[has trace [T]]: <coin, tea>             -- yes
+assert VendingMachine :[has trace [T]]: <coin, tea, coin>       -- yes
+assert VendingMachine :[has trace [T]]: <coin, tea, coin, tea>  -- yes
+assert VendingMachine :[has trace [T]]: <tea>                   -- NO!

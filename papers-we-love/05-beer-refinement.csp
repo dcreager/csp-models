@@ -1,0 +1,33 @@
+-- Let's add a new type of beverage!
+datatype Product = tea | coffee | beer
+channel coin
+channel request : Product
+channel vend : Product
+
+-- This is the same process as in 03-coffee-machine.csp and
+-- 04-coffee-refinement.csp.  It does NOT have any beer in it.
+VendingMachine = let
+    WaitingForCoin = coin -> WaitingForRequest
+    WaitingForRequest =
+        request!tea -> ReadyToDispenseTea
+            []
+        request!coffee -> ReadyToDispenseCoffee
+    ReadyToDispenseTea = vend!tea -> WaitingForCoin
+    ReadyToDispenseCoffee = vend!coffee -> WaitingForCoin
+within
+    WaitingForCoin
+
+-- This is the same process as in 04-coffee-refinement.csp.  This process DOES
+-- include `beer`, so it will ensure that if the customer requests beer, the
+-- vending machine dispense beer.  (The process doesn't mention beer explicitly,
+-- but the `?product` part will pick up all possible values of the `Product`
+-- type.)
+AlwaysVendsRequestedProduct = let
+    NoProductRequested = request?product -> ProductRequested(product)
+    ProductRequested(product) = vend!product -> NoProductRequested
+within
+    NoProductRequested
+
+-- Exercise: Why does the refinement still succeed even though the vending
+-- machine won't ever dispense beer?
+assert AlwaysVendsRequestedProduct [T= (VendingMachine \ {coin})
